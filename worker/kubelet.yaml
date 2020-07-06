@@ -1,0 +1,82 @@
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+enableServer: true
+staticPodPath: /etc/kubelet/static/
+syncFrequency: 1m
+fileCheckFrequency: 20s
+address: k8s-masters.as53546.tblflp.zone
+port: 10250
+readOnlyPort: 0
+rotateCertificates: true
+serverTLSBootstrap: true
+authentication:
+  anonymous:
+    enabled: false
+  webhook:
+    enabled: true
+    cacheTTL: "2m"
+authorization:
+  mode: Webhook
+  webhook:
+    cacheAuthorizedTTL: "5m"
+    cacheUnauthorizedTTL: "30s"
+registryPullQPS: 5
+registryBurst: 10
+eventRecordQPS: 5
+eventBurst: 10
+enableDebuggingHandlers: true
+enableContentionProfiling: false
+healthzPort: 10248
+healthzBindAddress: 127.0.0.1
+oomScoreAdj: -999
+clusterDomain: cluster.local
+clusterDNS:
+- 10.195.1.5
+streamingConnectionIdleTimeout: 4h
+nodeStatusUpdateFrequency: 10s
+nodeStatusReportFrequency: 1m
+nodeLeaseDurationSeconds: 40
+imageMinimumGCAge: 2m
+imageGCHighThresholdPercent: 85
+imageGCLowThresholdPercent: 80
+volumeStatsAggPeriod: 1m
+cgroupsPerQOS: true
+cgroupDriver: cgroupfs
+cpuManagerPolicy: none
+cpuManagerReconcilePeriod: 10s
+topologyManagerPolicy: none
+runtimeRequestTimeout: 2m
+hairpinMode: promiscuous-bridge
+maxPods: 200
+podPidsLimit: -1
+resolvConf: /etc/resolv.conf
+runOnce: false
+cpuCFSQuota: true
+cpuCFSQuotaPeriod: 100ms
+nodeStatusMaxImages: 50
+maxOpenFiles: 1000000
+contentType: application/vnd.kubernetes.protobuf
+kubeAPIQPS: 5
+kubeAPIBurst: 10
+serializeImagePulls: true
+evictionHard:
+  memory.available:  "200Mi"
+  nodefs.available:  "10%"
+  nodefs.inodesFree: "5%"
+  imagefs.available: "15%"
+evictionPressureTransitionPeriod: 5m
+enableControllerAttachDetach: true
+protectKernelDefaults: false
+makeIPTablesUtilChains: true
+iptablesMasqueradeBit: 14
+iptablesDropBit: 15
+featureGates:
+  EphemeralContainers: true
+  RotateKubeletClientCertificate: true
+  RotateKubeletServerCertificate: true
+failSwapOn: true
+containerLogMaxSize: 10Mi
+containerLogMaxFiles: 5
+configMapAndSecretChangeDetectionStrategy: watch
+volumePluginDir: /usr/libexec/kubernetes/kubelet-plugins/volume/exec/
+

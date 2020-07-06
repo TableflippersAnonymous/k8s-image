@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: etcd-k8s-01
+  namespace: kube-system
+spec:
+  hostNetwork: true
+  containers:
+  - name: etcd
+    image: bitnami/etcd:3.4.9
+    ports:
+    - name: etcd-client
+      containerPort: 2379
+      protocol: TCP
+    - name: etcd-peer
+      containerPort: 2380
+      protocol: TCP
+    args:
+    - --name=k8s-01
+    - --initial-advertise-peer-urls=http://k8s-01-private.as53546.tblflp.zone:2380
+    - --listen-peer-urls=http://k8s-01-private.as53546.tblflp.zone:2380
+    - --listen-client-urls=http://k8s-01-private.as53546.tblflp.zone:2379
+    - --advertise-client-urls=http://k8s-01-private.as53546.tblflp.zone:2379
+    - --initial-cluster-token=etcd-k8s
+    - --initial-cluster=k8s-01=http://k8s-01-private.as53546.tblflp.zone:2380,k8s-02=http://k8s-02-private.as53546.tblflp.zone:2380,k8s-03=http://k8s-03-private.as53546.tblflp.zone:2380
+    - --initial-cluster-state=new
+    volumeMounts:
+    - mountPath: /bitnami/etcd
+      name: data
+  volumes:
+  - name: data
+    hostPath:
+      path: /mnt/local/etcd

@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kube-controller-manager-k8s-01
+  namespace: kube-system
+spec:
+  hostNetwork: true
+  containers:
+  - name: kube-controller-manager
+    image: gcr.io/google-containers/kube-controller-manager:1.18.5
+    ports:
+    - name: https
+      containerPort: 10257
+      protocol: TCP
+    args:
+    - --allocate-node-cidrs=true
+    - --
+    - --bind-address=k8s-01-privatelb.as53546.tblflp.zone
+    - --
+    - --feature-gates=DynamicAuditing=true,HPAScaleToZero=true
+
+

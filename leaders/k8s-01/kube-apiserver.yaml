@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kube-apiserver-k8s-01
+  namespace: kube-system
+spec:
+  hostNetwork: true
+  containers:
+  - name: kube-apiserver
+    image: gcr.io/google-containers/kube-apiserver:1.18.5
+    ports:
+    - name: https
+      containerPort: 6443
+      protocol: TCP
+    args:
+    - --allow-privileged=true
+    - --apiserver-count=3
+    - --audit-dynamic-configuration=true
+    - --authorization-mode=Node,RBAC
+    - --bind-address=k8s-01-privatelb.as53546.tblflp.zone
+    - --enable-bootstrap-token-auth
+    - --enable-admission-plugins=NodeRestriction
+    - --etcd-servers=http://k8s-01-private.as53546.tblflp.zone:2379,http://k8s-02-private.as53546.tblflp.zone:2379,http://k8s-03-private.as53546.tblflp.zone:2379
+    - --feature-gates=DynamicAuditing=true,HPAScaleToZero=true,EphemeralContainers=true
+    - --goaway-chance=0.001
+    - --oidc-client-id=mck2x2FiFLUK7SlH4Py5
+    - --oidc-issuer-url=https://tblflp.okta.com/oauth2/aus27b41mv215L25t1t7
+    - --service-cluster-ip-range=10.195.0.0/18
+    - --storage-backend=etcd3
+    - --token-auth-file=/etc/kubernetes/tokens
+    - --runtime-config=api/all
+    volumeMounts:
+    - mountPath: /etc/kubernetes
+      name: config
+  volumes:
+  - name: config
+    hostPath: /etc/kubernetes
+
