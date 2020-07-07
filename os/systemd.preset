@@ -1,0 +1,6 @@
+enable crio.service
+enable coredns.service
+enable initialize-disks.service
+enable kubelet.service
+enable ntp.service
+enable ssh.service

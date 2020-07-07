@@ -2,15 +2,15 @@ network:
   version: 2
   renderer: networkd
   ethernets:
-    eno1:
+    eth0:
       dhcp4: true
-    eno2:
+    eth1:
       dhcp4: true
-    eno3:
+    eth2:
       dhcp4: true
-    eno4:
+    eth3:
       dhcp4: true
-    enp68s0:
+    eth4:
       dhcp4: true
-    enp68s1:
+    eth5:
       dhcp4: true

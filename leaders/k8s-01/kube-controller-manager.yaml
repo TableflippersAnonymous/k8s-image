@@ -15,7 +15,7 @@ spec:
     args:
     - --allocate-node-cidrs=true
     - --
-    - --bind-address=k8s-01-privatelb.as53546.tblflp.zone
+    - --bind-address=k8s-01-lb.as53546.tblflp.zone
     - --
     - --feature-gates=DynamicAuditing=true,HPAScaleToZero=true
 

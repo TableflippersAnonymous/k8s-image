@@ -5,7 +5,7 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-ExecStart=/usr/bin/kubelet --config /etc/kubelet.yaml --kubeconfig /etc/kubelet/kubeconfig.yaml --bootstrap-kubeconfig /etc/kubelet/bootstrap.yaml --cert-dir /etc/kubelet/pki
+ExecStart=/usr/bin/kubelet --config /etc/kubelet.yaml --kubeconfig /etc/kubelet/kubeconfig.yaml --bootstrap-kubeconfig /etc/kubelet/bootstrap.yaml --cert-dir /etc/kubelet/pki --container-runtime remote --container-runtime-endpoint unix:///var/run/crio/crio.sock --cgroup-driver systemd
 Restart=always
 StartLimitInterval=0
 RestartSec=10

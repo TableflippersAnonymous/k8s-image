@@ -16,4 +16,4 @@ iseq ${net0/ip} 10.199.14.2 && set imgpfx k8s-02 ||
 iseq ${net0/ip} 10.199.14.3 && set imgpfx k8s-03 ||
 
 initrd tftp://${net0/next-server}/pxe/initrd.img-${imgvers}
-boot tftp://${net0/next-server}/pxe/vmlinuz-${imgvers} initrd=initrd.img-${imgvers} boot=live fetch=ftp://${net0/next-server}/${imgpfx}-${imgvers}.squashfs toram BOOTIF=${net0/mac}
+boot tftp://${net0/next-server}/pxe/vmlinuz-${imgvers} initrd=initrd.img-${imgvers} boot=live fetch=ftp://${net0/next-server}/${imgpfx}-${imgvers}.squashfs toram BOOTIF=${net0/mac} init=/lib/systemd/systemd net.ifnames=0 pxeip=${net0/ip}

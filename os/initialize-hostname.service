@@ -1,0 +1,13 @@
+[Unit]
+Description=Initialize Hostname
+Documentation=http://tblflp.zone
+After=local-fs.target
+Requires=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/initialize-hostname.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

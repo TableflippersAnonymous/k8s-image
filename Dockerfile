@@ -25,7 +25,7 @@ RUN wget https://dl.k8s.io/v${KUBE_VERSION}/kubernetes-node-linux-amd64.tar.gz
 FROM core AS base
 
 RUN apt-mark hold grub-pc
-RUN apt-get install -y linux-image-${KERNEL_VERSION} live-boot systemd wget netplan.io ntp gnupg2 make squashfs-tools
+RUN apt-get install -y linux-image-${KERNEL_VERSION} live-boot systemd wget netplan.io ntp gnupg2 make squashfs-tools openssh-server iputils-ping htop vim pciutils lshw less
 
 COPY --from=downloads coredns_${COREDNS_VERSION}_linux_amd64.tgz .
 RUN tar -xpf coredns_${COREDNS_VERSION}_linux_amd64.tgz && \
@@ -38,15 +38,26 @@ COPY os/fstab /etc/fstab
 COPY os/hosts /etc/hosts
 COPY os/ntp.conf /etc/ntp.conf
 COPY os/coredns.conf /etc/coredns.conf
-COPY os/coredns.service /usr/local/lib/systemd/system/
+COPY os/coredns.service /usr/lib/systemd/system/
 COPY os/resolv.conf /etc/resolv.conf
 COPY os/netplan.yaml /etc/netplan/config.yaml
+COPY os/initialize-disks.sh /usr/local/sbin/initialize-disks.sh
+COPY os/initialize-hostname.sh /usr/local/sbin/initialize-hostname.sh
+RUN chmod +x /usr/local/sbin/initialize-disks.sh /usr/local/sbin/initialize-hostname.sh
+COPY os/initialize-disks.service /usr/lib/systemd/system
+COPY os/initialize-hostname.service /usr/lib/systemd/system
+COPY os/systemd.preset /usr/lib/systemd/system-preset/00-tblflp.preset
+COPY os/sshd_config /etc/ssh/sshd_config
+COPY os/authorized_keys /root/.ssh/authorized_keys
+RUN chmod 400 /root/.ssh/authorized_keys && chown root /root/.ssh/authorized_keys
+COPY secrets/shadow /etc/shadow
 
 RUN update-initramfs -u
+RUN systemctl enable ntp coredns initialize-disks initialize-hostname ssh
 
 FROM base AS node
 
-RUN mkdir /mnt/ceph /mnt/ceph/slow1 /mnt/ceph/slow2 /mnt/ceph/fast /mnt/local /mnt/local/crio /mnt/local/containers /mnt/local/log /mnt/local/log/pods
+RUN mkdir /mnt/ceph /mnt/slow1 /mnt/slow2 /mnt/fast /mnt/local /mnt/local/crio /mnt/local/containers /mnt/local/log /mnt/local/log/pods
 
 # CRI-O
 
@@ -58,6 +69,8 @@ RUN tar -xpf crio-v${CRIO_VERSION}.tar.gz && \
 COPY worker/99-cri.conf /etc/sysctl.d/99-cri.conf
 COPY worker/crio.conf /etc/crio/crio.conf
 COPY worker/storage.conf /etc/containers/storage.conf
+RUN mv /usr/local/lib/systemd/system/crio.service /usr/lib/systemd/system/crio.service
+RUN systemctl enable crio
 
 # KUBERNETES
 
@@ -67,13 +80,16 @@ RUN tar -xpf kubernetes-node-linux-amd64.tar.gz && \
   rm -rf kubernetes kubernetes-node-linux-amd64.tar.gz
 
 COPY worker/kubelet.yaml /etc/kubelet.yaml
-COPY worker/kubelet.service /usr/local/lib/systemd/system/
+COPY worker/kubelet.service /usr/lib/systemd/system/
 RUN mkdir /etc/kubelet /etc/kubelet/pki /etc/kubelet/static
 COPY secrets/bootstrap.yaml /etc/kubelet/bootstrap.yaml
+COPY secrets/pki/ca.crt /etc/pki/k8sca.crt
+RUN systemctl enable kubelet
 
 FROM node AS leader
 
 COPY secrets/tokens /etc/kubernetes/tokens
+COPY secrets/pki /etc/kubernetes/pki
 
 FROM leader AS k8s-01
 
