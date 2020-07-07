@@ -1,6 +1,6 @@
 FROM ubuntu:20.04 AS opts
 
-ENV KUBE_VERSION 1.18.3
+ENV KUBE_VERSION 1.18.5
 ENV CRIO_VERSION 1.18.1
 ENV COREDNS_VERSION 1.7.0
 ENV KERNEL_VERSION 5.4.0-37-generic
@@ -90,27 +90,29 @@ FROM node AS leader
 
 COPY secrets/tokens /etc/kubernetes/tokens
 COPY secrets/pki /etc/kubernetes/pki
+COPY secrets/controller.yaml /etc/kubernetes/controller.kubeconfig
+COPY secrets/scheduler.yaml /etc/kubernetes/scheduler.kubeconfig
 
 FROM leader AS k8s-01
 
 COPY leaders/k8s-01/kube-apiserver.yaml /etc/kubelet/static/
 COPY leaders/k8s-01/kube-controller-manager.yaml /etc/kubelet/static/
-#COPY leaders/k8s-01/kube-scheduler.yaml /etc/kubelet/static/
+COPY leaders/k8s-01/kube-scheduler.yaml /etc/kubelet/static/
 COPY leaders/k8s-01/etcd.yaml /etc/kubelet/static/
 
 FROM leader AS k8s-02
 
-#COPY leaders/k8s-02/kube-apiserver.yaml /etc/kubelet/static/
-#COPY leaders/k8s-02/kube-controller-manager.yaml /etc/kubelet/static/
-#COPY leaders/k8s-02/kube-scheduler.yaml /etc/kubelet/static/
-#COPY leaders/k8s-02/etcd.yaml /etc/kubelet/static/
+COPY leaders/k8s-02/kube-apiserver.yaml /etc/kubelet/static/
+COPY leaders/k8s-02/kube-controller-manager.yaml /etc/kubelet/static/
+COPY leaders/k8s-02/kube-scheduler.yaml /etc/kubelet/static/
+COPY leaders/k8s-02/etcd.yaml /etc/kubelet/static/
 
 FROM leader AS k8s-03
 
-#COPY leaders/k8s-03/kube-apiserver.yaml /etc/kubelet/static/
-#COPY leaders/k8s-03/kube-controller-manager.yaml /etc/kubelet/static/
-#COPY leaders/k8s-03/kube-scheduler.yaml /etc/kubelet/static/
-#COPY leaders/k8s-03/etcd.yaml /etc/kubelet/static/
+COPY leaders/k8s-03/kube-apiserver.yaml /etc/kubelet/static/
+COPY leaders/k8s-03/kube-controller-manager.yaml /etc/kubelet/static/
+COPY leaders/k8s-03/kube-scheduler.yaml /etc/kubelet/static/
+COPY leaders/k8s-03/etcd.yaml /etc/kubelet/static/
 
 FROM core AS ipxe
 

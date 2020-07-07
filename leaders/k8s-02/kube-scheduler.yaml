@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kube-scheduler-k8s-02
+  namespace: kube-system
+spec:
+  hostNetwork: true
+  containers:
+  - name: kube-scheduler
+    image: gcr.io/google-containers/kube-scheduler:v1.18.5
+    ports:
+    - name: https
+      containerPort: 10259
+      protocol: TCP
+    command:
+    - /usr/local/bin/kube-scheduler
+    args:
+    - --authentication-kubeconfig=/etc/kubernetes/scheduler.kubeconfig
+    - --authorization-kubeconfig=/etc/kubernetes/scheduler.kubeconfig
+    - --bind-address=k8s-02-lb.as53546.tblflp.zone
+    - --kubeconfig=/etc/kubernetes/scheduler.kubeconfig
+    - --feature-gates=DynamicAuditing=true,HPAScaleToZero=true,EphemeralContainers=true
+    - --tls-cert-file=/etc/kubernetes/pki/server.crt
+    - --tls-private-key-file=/etc/kubernetes/pki/server.key
+    volumeMounts:
+    - mountPath: /etc/kubernetes
+      name: config
+  volumes:
+  - name: config
+    hostPath:
+      path: /etc/kubernetes

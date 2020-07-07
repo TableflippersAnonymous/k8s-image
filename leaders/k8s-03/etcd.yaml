@@ -24,6 +24,9 @@ spec:
     - --initial-cluster-token=etcd-k8s
     - --initial-cluster=k8s-01=http://k8s-01-private.as53546.tblflp.zone:2380,k8s-02=http://k8s-02-private.as53546.tblflp.zone:2380,k8s-03=http://k8s-03-private.as53546.tblflp.zone:2380
     - --initial-cluster-state=new
+    env:
+    - name: ALLOW_NONE_AUTHENTICATION
+      value: yes
     volumeMounts:
     - mountPath: /bitnami/etcd
       name: data
