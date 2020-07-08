@@ -4,6 +4,8 @@ metadata:
   name: etcd-k8s-02
   namespace: kube-system
 spec:
+  securityContext:
+    runAsUser: 0
   hostNetwork: true
   containers:
   - name: etcd
@@ -15,18 +17,22 @@ spec:
     - name: etcd-peer
       containerPort: 2380
       protocol: TCP
+    command:
+    - etcd
     args:
     - --name=k8s-02
-    - --initial-advertise-peer-urls=http://k8s-02-private.as53546.tblflp.zone:2380
-    - --listen-peer-urls=http://k8s-02-private.as53546.tblflp.zone:2380
-    - --listen-client-urls=http://k8s-02-private.as53546.tblflp.zone:2379
-    - --advertise-client-urls=http://k8s-02-private.as53546.tblflp.zone:2379
+    - --initial-advertise-peer-urls=http://10.199.14.2:2380
+    - --listen-peer-urls=http://10.199.14.2:2380
     - --initial-cluster-token=etcd-k8s
-    - --initial-cluster=k8s-01=http://k8s-01-private.as53546.tblflp.zone:2380,k8s-02=http://k8s-02-private.as53546.tblflp.zone:2380,k8s-03=http://k8s-03-private.as53546.tblflp.zone:2380
+    - --initial-cluster=k8s-01=http://10.199.14.1:2380,k8s-02=http://10.199.14.2:2380,k8s-03=http://10.199.14.3:2380
     - --initial-cluster-state=new
     env:
     - name: ALLOW_NONE_AUTHENTICATION
-      value: yes
+      value: "yes"
+    - name: ETCD_ADVERTISE_CLIENT_URLS
+      value: http://10.199.14.2:2379
+    - name: ETCD_LISTEN_CLIENT_URLS
+      value: http://10.199.14.2:2379
     volumeMounts:
     - mountPath: /bitnami/etcd
       name: data

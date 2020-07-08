@@ -19,7 +19,7 @@ spec:
     - --apiserver-count=3
     - --audit-dynamic-configuration=true
     - --authorization-mode=Node,RBAC
-    - --bind-address=k8s-02-lb.as53546.tblflp.zone
+    - --bind-address=10.199.15.2
     - --enable-bootstrap-token-auth
     - --enable-admission-plugins=NodeRestriction
     - --etcd-servers=http://k8s-01-private.as53546.tblflp.zone:2379,http://k8s-02-private.as53546.tblflp.zone:2379,http://k8s-03-private.as53546.tblflp.zone:2379
@@ -30,9 +30,9 @@ spec:
     - --service-cluster-ip-range=10.195.0.0/18
     - --storage-backend=etcd3
     - --token-auth-file=/etc/kubernetes/tokens
-    - --runtime-config=api/all
     - --tls-cert-file=/etc/kubernetes/pki/server.crt
     - --tls-private-key-file=/etc/kubernetes/pki/server.key
+    - --client-ca-file=/etc/kubernetes/pki/ca.crt
     volumeMounts:
     - mountPath: /etc/kubernetes
       name: config

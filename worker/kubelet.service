@@ -2,7 +2,7 @@
 Description=kubelet: The Kubernetes Node Agent
 Documentation=https://kubernetes.io/docs/home/
 Wants=network-online.target
-After=network-online.target
+After=network-online.target initialize-hostname.service
 
 [Service]
 ExecStart=/usr/bin/kubelet --config /etc/kubelet.yaml --kubeconfig /etc/kubelet/kubeconfig.yaml --bootstrap-kubeconfig /etc/kubelet/bootstrap.yaml --cert-dir /etc/kubelet/pki --container-runtime remote --container-runtime-endpoint unix:///var/run/crio/crio.sock --cgroup-driver systemd

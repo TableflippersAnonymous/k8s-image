@@ -1,0 +1,14 @@
+[Unit]
+Description=NTP
+Documentation=http://tblflp.zone
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/sbin/ntpd -g -u 101:101 -n
+Restart=always
+StartLimitInterval=0
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

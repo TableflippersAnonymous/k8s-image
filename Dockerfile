@@ -25,7 +25,7 @@ RUN wget https://dl.k8s.io/v${KUBE_VERSION}/kubernetes-node-linux-amd64.tar.gz
 FROM core AS base
 
 RUN apt-mark hold grub-pc
-RUN apt-get install -y linux-image-${KERNEL_VERSION} live-boot systemd wget netplan.io ntp gnupg2 make squashfs-tools openssh-server iputils-ping htop vim pciutils lshw less
+RUN apt-get install -y linux-image-${KERNEL_VERSION} live-boot systemd wget netplan.io ntp gnupg2 make squashfs-tools openssh-server iputils-ping htop vim pciutils lshw less iptables ntpdate ipmitool
 
 COPY --from=downloads coredns_${COREDNS_VERSION}_linux_amd64.tgz .
 RUN tar -xpf coredns_${COREDNS_VERSION}_linux_amd64.tgz && \
@@ -49,11 +49,15 @@ COPY os/initialize-hostname.service /usr/lib/systemd/system
 COPY os/systemd.preset /usr/lib/systemd/system-preset/00-tblflp.preset
 COPY os/sshd_config /etc/ssh/sshd_config
 COPY os/authorized_keys /root/.ssh/authorized_keys
+COPY os/ntpd.service /usr/lib/systemd/system
+COPY os/ntpdate.service /usr/lib/systemd/system
 RUN chmod 400 /root/.ssh/authorized_keys && chown root /root/.ssh/authorized_keys
 COPY secrets/shadow /etc/shadow
+RUN mkdir -p /var/log/ntpstats && chown 101:101 /var/log/ntpstats
 
 RUN update-initramfs -u
-RUN systemctl enable ntp coredns initialize-disks initialize-hostname ssh
+RUN systemctl enable ntpd ntpdate coredns initialize-disks initialize-hostname ssh
+RUN systemctl disable ntp
 
 FROM base AS node
 
@@ -139,10 +143,10 @@ RUN cp /roots/node/boot/config-${KERNEL_VERSION} /tftp/config-${KUBE_VERSION}-${
 RUN cp /roots/node/boot/System.map-${KERNEL_VERSION} /tftp/System.map-${KUBE_VERSION}-${IMAGE_VERSION}
 RUN rm -rf /roots/*/boot
 
-RUN mksquashfs /roots/node /images/node-${KUBE_VERSION}-${IMAGE_VERSION}.squashfs -comp xz
-RUN mksquashfs /roots/k8s-01 /images/k8s-01-${KUBE_VERSION}-${IMAGE_VERSION}.squashfs -comp xz
-RUN mksquashfs /roots/k8s-02 /images/k8s-02-${KUBE_VERSION}-${IMAGE_VERSION}.squashfs -comp xz
-RUN mksquashfs /roots/k8s-03 /images/k8s-03-${KUBE_VERSION}-${IMAGE_VERSION}.squashfs -comp xz
+RUN mksquashfs /roots/node /images/node-${KUBE_VERSION}-${IMAGE_VERSION}.squashfs -comp lzo
+RUN mksquashfs /roots/k8s-01 /images/k8s-01-${KUBE_VERSION}-${IMAGE_VERSION}.squashfs -comp lzo
+RUN mksquashfs /roots/k8s-02 /images/k8s-02-${KUBE_VERSION}-${IMAGE_VERSION}.squashfs -comp lzo
+RUN mksquashfs /roots/k8s-03 /images/k8s-03-${KUBE_VERSION}-${IMAGE_VERSION}.squashfs -comp lzo
 
 COPY --from=ipxe ipxe/src/bin/undionly.kpxe /tftp/boot-${KUBE_VERSION}-${IMAGE_VERSION}.kpxe
 RUN tar -zcpf /images/tftp-${KUBE_VERSION}-${IMAGE_VERSION}.tgz -C /tftp .
