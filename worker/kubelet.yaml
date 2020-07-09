@@ -11,6 +11,8 @@ authentication:
   webhook:
     enabled: true
     cacheTTL: "2m"
+  x509:
+    clientCAFile: /etc/pki/k8sca.crt
 authorization:
   mode: Webhook
   webhook:

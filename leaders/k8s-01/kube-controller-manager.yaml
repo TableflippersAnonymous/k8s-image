@@ -31,6 +31,7 @@ spec:
     - --feature-gates=DynamicAuditing=true,HPAScaleToZero=true
     - --tls-cert-file=/etc/kubernetes/pki/server.crt
     - --tls-private-key-file=/etc/kubernetes/pki/server.key
+    - --root-ca-file=/etc/kubernetes/pki/ca.crt
     volumeMounts:
     - mountPath: /etc/kubernetes
       name: config

@@ -27,12 +27,14 @@ spec:
     - --goaway-chance=0.001
     - --oidc-client-id=mck2x2FiFLUK7SlH4Py5
     - --oidc-issuer-url=https://tblflp.okta.com/oauth2/aus27b41mv215L25t1t7
-    - --service-cluster-ip-range=10.195.0.0/18
+    - --service-cluster-ip-range=10.195.0.0/16
     - --storage-backend=etcd3
     - --token-auth-file=/etc/kubernetes/tokens
     - --tls-cert-file=/etc/kubernetes/pki/server.crt
     - --tls-private-key-file=/etc/kubernetes/pki/server.key
     - --client-ca-file=/etc/kubernetes/pki/ca.crt
+    - --kubelet-client-certificate=/etc/kubernetes/pki/server.crt
+    - --kubelet-client-key=/etc/kubernetes/pki/server.key
     volumeMounts:
     - mountPath: /etc/kubernetes
       name: config
