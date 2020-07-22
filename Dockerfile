@@ -73,7 +73,8 @@ RUN tar -xpf crio-v${CRIO_VERSION}.tar.gz && \
 COPY worker/99-cri.conf /etc/sysctl.d/99-cri.conf
 COPY worker/crio.conf /etc/crio/crio.conf
 COPY worker/storage.conf /etc/containers/storage.conf
-RUN mv /usr/local/lib/systemd/system/crio.service /usr/lib/systemd/system/crio.service
+RUN rm -f /usr/local/lib/systemd/system/crio.service
+COPY worker/crio.service /usr/lib/systemd/system/crio.service
 RUN systemctl enable crio
 
 # KUBERNETES
