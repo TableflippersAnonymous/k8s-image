@@ -1,7 +1,7 @@
 .PHONY: output build clean upload uploadpxe
 all: clean build output upload
 clean:
-	rm -rf output
+	rm -rf output upload
 build: clean
 	docker build -t tblflp-pxe .
 output: build

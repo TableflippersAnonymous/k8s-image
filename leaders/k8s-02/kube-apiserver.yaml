@@ -35,6 +35,13 @@ spec:
     - --client-ca-file=/etc/kubernetes/pki/ca.crt
     - --kubelet-client-certificate=/etc/kubernetes/pki/server.crt
     - --kubelet-client-key=/etc/kubernetes/pki/server.key
+    - --requestheader-client-ca-file=/etc/kubernetes/pki/ext-ca.crt
+    - --requestheader-allowed-names=front-proxy-client
+    - --requestheader-extra-headers-prefix=X-Remote-Extra-
+    - --requestheader-group-headers=X-Remote-Group
+    - --requestheader-username-headers=X-Remote-User
+    - --proxy-client-cert-file=/etc/kubernetes/pki/ext-proxy.crt
+    - --proxy-client-key-file=/etc/kubernetes/pki/ext-proxy.key
     volumeMounts:
     - mountPath: /etc/kubernetes
       name: config

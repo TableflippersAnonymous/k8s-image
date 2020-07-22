@@ -32,6 +32,11 @@ spec:
     - --tls-cert-file=/etc/kubernetes/pki/server.crt
     - --tls-private-key-file=/etc/kubernetes/pki/server.key
     - --root-ca-file=/etc/kubernetes/pki/ca.crt
+    - --requestheader-client-ca-file=/etc/kubernetes/pki/ext-ca.crt
+    - --requestheader-allowed-names=front-proxy-client
+    - --requestheader-extra-headers-prefix=X-Remote-Extra-
+    - --requestheader-group-headers=X-Remote-Group
+    - --requestheader-username-headers=X-Remote-User
     volumeMounts:
     - mountPath: /etc/kubernetes
       name: config
