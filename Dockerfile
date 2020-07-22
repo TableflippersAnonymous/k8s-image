@@ -25,7 +25,7 @@ RUN wget https://dl.k8s.io/v${KUBE_VERSION}/kubernetes-node-linux-amd64.tar.gz
 FROM core AS base
 
 RUN apt-mark hold grub-pc
-RUN apt-get install -y linux-image-${KERNEL_VERSION} live-boot systemd wget netplan.io ntp gnupg2 make squashfs-tools openssh-server iputils-ping htop vim pciutils lshw less iptables ntpdate ipmitool
+RUN apt-get install -y linux-image-${KERNEL_VERSION} live-boot systemd wget netplan.io ntp gnupg2 make squashfs-tools openssh-server iputils-ping htop vim pciutils lshw less iptables ntpdate ipmitool lvm2 curl
 
 COPY --from=downloads coredns_${COREDNS_VERSION}_linux_amd64.tgz .
 RUN tar -xpf coredns_${COREDNS_VERSION}_linux_amd64.tgz && \
@@ -56,7 +56,7 @@ COPY secrets/shadow /etc/shadow
 RUN mkdir -p /var/log/ntpstats && chown 101:101 /var/log/ntpstats
 
 RUN update-initramfs -u
-RUN systemctl enable ntpd ntpdate coredns initialize-disks initialize-hostname ssh
+RUN systemctl enable ntpd ntpdate coredns initialize-disks initialize-hostname ssh dm-event
 RUN systemctl disable ntp
 
 FROM base AS node

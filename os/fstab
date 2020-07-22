@@ -1,4 +1,1 @@
-LABEL=slow1 /mnt/slow1 ext4 defaults 0 2
-LABEL=slow2 /mnt/slow2 ext4 defaults 0 2
-LABEL=fast /mnt/fast ext4 defaults 0 2
 LABEL=local /mnt/local ext4 defaults 0 2

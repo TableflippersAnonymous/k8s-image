@@ -15,7 +15,15 @@ slow2="$(ls -1 /dev/disk/by-id/ata-WDC_*|tail -n 1)"
 fast="$(ls -1 /dev/disk/by-id/ata-CT*|head -n 1)"
 locl="$(ls -1 /dev/disk/by-id/ata-CT*|tail -n 1)"
 
-initialize_disk "$slow1" "slow1"
-initialize_disk "$slow2" "slow2"
-initialize_disk "$fast" "fast"
+if [[ "${fast}" == "${locl}" ]]
+then
+  echo "No separate fast and locl"
+  exit 1
+fi
+
 initialize_disk "$locl" "local"
+
+mkdir -p /dev/disk/ceph
+ln -s "${slow1}" /dev/disk/slow1
+ln -s "${slow2}" /dev/disk/slow2
+ln -s "${fast}" /dev/disk/fast
