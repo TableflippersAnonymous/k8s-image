@@ -7,7 +7,7 @@ spec:
   hostNetwork: true
   containers:
   - name: kube-scheduler
-    image: gcr.io/google-containers/kube-scheduler:v1.18.5
+    image: gcr.io/google-containers/kube-scheduler:v1.19.0
     ports:
     - name: https
       containerPort: 10259
