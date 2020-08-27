@@ -1,12 +1,14 @@
 FROM ubuntu:20.04 AS opts
 
-ENV KUBE_VERSION 1.18.5
-ENV CRIO_VERSION 1.18.1
+ENV KUBE_VERSION 1.18.6
+ENV CRIO_VERSION 1.18.3
 ENV COREDNS_VERSION 1.7.0
 ENV KERNEL_VERSION 5.4.0-37-generic
-ENV IMAGE_VERSION 1.0.0
+ENV IMAGE_VERSION 1.0.3
 ENV DEBIAN_FRONTEND noninteractive
 ENV TZ UTC
+
+RUN env | egrep -v '^(PATH|HOSTNAME|TERM|HOME)' > /etc/image.env
 
 FROM opts AS core
 
@@ -25,13 +27,27 @@ RUN wget https://dl.k8s.io/v${KUBE_VERSION}/kubernetes-node-linux-amd64.tar.gz
 FROM core AS base
 
 RUN apt-mark hold grub-pc
-RUN apt-get install -y linux-image-${KERNEL_VERSION} live-boot systemd wget netplan.io ntp gnupg2 make squashfs-tools openssh-server iputils-ping htop vim pciutils lshw less iptables ntpdate ipmitool lvm2 curl
+RUN apt-get install -y linux-image-${KERNEL_VERSION} linux-headers-${KERNEL_VERSION} live-boot systemd wget netplan.io ntp gnupg2 make squashfs-tools openssh-server iputils-ping htop vim pciutils lshw less iptables ntpdate ipmitool lvm2 curl
 
 COPY --from=downloads coredns_${COREDNS_VERSION}_linux_amd64.tgz .
 RUN tar -xpf coredns_${COREDNS_VERSION}_linux_amd64.tgz && \
   mv coredns /usr/bin/ && \
   chmod +x /usr/bin/coredns && \
   rm -rf coredns_${COREDNS_VERSION}_linux_amd64.tgz
+
+RUN echo "deb http://pkg.scaleft.com/deb linux main" | tee -a /etc/apt/sources.list
+RUN curl -C - https://dist.scaleft.com/pki/scaleft_deb_key.asc | apt-key add -
+RUN echo "deb https://dl.bintray.com/falcosecurity/deb stable main" | tee -a /etc/apt/sources.list.d/falcosecurity.list
+RUN curl -s https://falco.org/repo/falcosecurity-3672BA8F.asc | apt-key add -
+
+RUN apt-get update
+RUN apt-get install -y falco
+
+COPY secrets/enrollment.token /var/lib/sftd/enrollment.token
+RUN mkdir -p /etc/sftd && touch /etc/sftd/disable-autostart
+RUN apt-get install -y scaleft-server-tools
+RUN sed -i -r 's/^(After=.*)$/\1 initialize-hostname.service/' /etc/systemd/system/sftd.service
+RUN rm -f /etc/sftd/disable-autostart
 
 COPY os/initramfs.conf /etc/initramfs-tools/initramfs.conf
 COPY os/fstab /etc/fstab
