@@ -1,10 +1,11 @@
 FROM ubuntu:20.04 AS opts
 
-ENV KUBE_VERSION 1.19.0
-ENV CRIO_VERSION 1.19.0
-ENV COREDNS_VERSION 1.7.0
-ENV KERNEL_VERSION 5.4.0-37-generic
-ENV IMAGE_VERSION 1.1.0
+ENV KUBE_VERSION 1.19.11
+ENV CRIO_VERSION 1.19.1
+ENV COREDNS_VERSION 1.8.3
+ENV ETCD_VERSION 3.4.16
+ENV KERNEL_VERSION 5.8.0-53-generic
+ENV IMAGE_VERSION 1.2.1
 ENV DEBIAN_FRONTEND noninteractive
 ENV TZ UTC
 
@@ -37,11 +38,8 @@ RUN tar -xpf coredns_${COREDNS_VERSION}_linux_amd64.tgz && \
 
 RUN echo "deb http://pkg.scaleft.com/deb linux main" | tee -a /etc/apt/sources.list
 RUN curl -C - https://dist.scaleft.com/pki/scaleft_deb_key.asc | apt-key add -
-RUN echo "deb https://dl.bintray.com/falcosecurity/deb stable main" | tee -a /etc/apt/sources.list.d/falcosecurity.list
-RUN curl -s https://falco.org/repo/falcosecurity-3672BA8F.asc | apt-key add -
 
 RUN apt-get update
-RUN apt-get install -y falco
 
 COPY secrets/enrollment.token /var/lib/sftd/enrollment.token
 RUN mkdir -p /etc/sftd && touch /etc/sftd/disable-autostart
@@ -113,27 +111,29 @@ COPY secrets/tokens /etc/kubernetes/tokens
 COPY secrets/pki /etc/kubernetes/pki
 COPY secrets/controller.yaml /etc/kubernetes/controller.kubeconfig
 COPY secrets/scheduler.yaml /etc/kubernetes/scheduler.kubeconfig
+COPY leaders/* /tmp/
+RUN chmod +x /tmp/create_static_pods.sh
 
 FROM leader AS k8s-01
 
-COPY leaders/k8s-01/kube-apiserver.yaml /etc/kubelet/static/
-COPY leaders/k8s-01/kube-controller-manager.yaml /etc/kubelet/static/
-COPY leaders/k8s-01/kube-scheduler.yaml /etc/kubelet/static/
-COPY leaders/k8s-01/etcd.yaml /etc/kubelet/static/
+ENV NODE_NAME k8s-01
+ENV PRIVATE_IP 10.199.14.1
+ENV LB_IP 10.199.15.1
+RUN /tmp/create_static_pods.sh
 
 FROM leader AS k8s-02
 
-COPY leaders/k8s-02/kube-apiserver.yaml /etc/kubelet/static/
-COPY leaders/k8s-02/kube-controller-manager.yaml /etc/kubelet/static/
-COPY leaders/k8s-02/kube-scheduler.yaml /etc/kubelet/static/
-COPY leaders/k8s-02/etcd.yaml /etc/kubelet/static/
+ENV NODE_NAME k8s-02
+ENV PRIVATE_IP 10.199.14.2
+ENV LB_IP 10.199.15.2
+RUN /tmp/create_static_pods.sh
 
 FROM leader AS k8s-03
 
-COPY leaders/k8s-03/kube-apiserver.yaml /etc/kubelet/static/
-COPY leaders/k8s-03/kube-controller-manager.yaml /etc/kubelet/static/
-COPY leaders/k8s-03/kube-scheduler.yaml /etc/kubelet/static/
-COPY leaders/k8s-03/etcd.yaml /etc/kubelet/static/
+ENV NODE_NAME k8s-03
+ENV PRIVATE_IP 10.199.14.3
+ENV LB_IP 10.199.15.3
+RUN /tmp/create_static_pods.sh
 
 FROM core AS ipxe
 

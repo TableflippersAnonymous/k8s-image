@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: kube-controller-manager-k8s-02
+  name: kube-controller-manager-$NODE_NAME
   namespace: kube-system
 spec:
   hostNetwork: true
   containers:
   - name: kube-controller-manager
-    image: gcr.io/google-containers/kube-controller-manager:v1.19.0
+    image: gcr.io/google-containers/kube-controller-manager:v$KUBE_VERSION
     ports:
     - name: https
       containerPort: 10257
@@ -19,7 +19,7 @@ spec:
     - --allocate-node-cidrs=true
     - --authentication-kubeconfig=/etc/kubernetes/controller.kubeconfig
     - --authorization-kubeconfig=/etc/kubernetes/controller.kubeconfig
-    - --bind-address=10.199.15.2
+    - --bind-address=$LB_IP
     - --cluster-cidr=10.196.0.0/16
     - --service-cluster-ip-range=10.195.0.0/16
     - --cluster-signing-cert-file=/etc/kubernetes/pki/ca.crt
