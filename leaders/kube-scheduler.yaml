@@ -7,7 +7,7 @@ spec:
   hostNetwork: true
   containers:
   - name: kube-scheduler
-    image: gcr.io/google-containers/kube-scheduler:v$KUBE_VERSION
+    image: k8s.gcr.io/kube-scheduler:v$KUBE_VERSION
     ports:
     - name: https
       containerPort: 10259
@@ -19,7 +19,7 @@ spec:
     - --authorization-kubeconfig=/etc/kubernetes/scheduler.kubeconfig
     - --bind-address=$LB_IP
     - --kubeconfig=/etc/kubernetes/scheduler.kubeconfig
-    - --feature-gates=DynamicAuditing=true,HPAScaleToZero=true,EphemeralContainers=true
+    - --feature-gates=HPAScaleToZero=true,EphemeralContainers=true
     - --tls-cert-file=/etc/kubernetes/pki/server.crt
     - --tls-private-key-file=/etc/kubernetes/pki/server.key
     volumeMounts:

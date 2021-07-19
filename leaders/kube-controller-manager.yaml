@@ -7,7 +7,7 @@ spec:
   hostNetwork: true
   containers:
   - name: kube-controller-manager
-    image: gcr.io/google-containers/kube-controller-manager:v$KUBE_VERSION
+    image: k8s.gcr.io/kube-controller-manager:v$KUBE_VERSION
     ports:
     - name: https
       containerPort: 10257
@@ -28,7 +28,7 @@ spec:
     - --kubeconfig=/etc/kubernetes/controller.kubeconfig
     - --service-account-private-key-file=/etc/kubernetes/pki/server.key
     - --use-service-account-credentials=true
-    - --feature-gates=DynamicAuditing=true,HPAScaleToZero=true
+    - --feature-gates=HPAScaleToZero=true
     - --tls-cert-file=/etc/kubernetes/pki/server.crt
     - --tls-private-key-file=/etc/kubernetes/pki/server.key
     - --root-ca-file=/etc/kubernetes/pki/ca.crt

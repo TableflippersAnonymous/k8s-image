@@ -31,7 +31,6 @@ evictionHard:
 enableControllerAttachDetach: true
 featureGates:
   EphemeralContainers: true
-  RotateKubeletClientCertificate: true
   RotateKubeletServerCertificate: true
 volumePluginDir: /usr/libexec/kubernetes/kubelet-plugins/volume/exec/
 

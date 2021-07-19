@@ -1,11 +1,11 @@
 FROM ubuntu:20.04 AS opts
 
-ENV KUBE_VERSION 1.19.11
-ENV CRIO_VERSION 1.19.1
-ENV COREDNS_VERSION 1.8.3
+ENV KUBE_VERSION 1.21.3
+ENV CRIO_VERSION 1.21.0
+ENV COREDNS_VERSION 1.8.4
 ENV ETCD_VERSION 3.4.16
 ENV KERNEL_VERSION 5.8.0-53-generic
-ENV IMAGE_VERSION 1.2.1
+ENV IMAGE_VERSION 1.4.0
 ENV DEBIAN_FRONTEND noninteractive
 ENV TZ UTC
 
@@ -22,7 +22,7 @@ FROM core AS downloads
 
 RUN apt-get install -y wget
 RUN wget https://github.com/coredns/coredns/releases/download/v${COREDNS_VERSION}/coredns_${COREDNS_VERSION}_linux_amd64.tgz
-RUN wget https://github.com/cri-o/cri-o/releases/download/v${CRIO_VERSION}/crio-v${CRIO_VERSION}.tar.gz
+RUN wget https://storage.googleapis.com/cri-o/artifacts/cri-o.amd64.v${CRIO_VERSION}.tar.gz
 RUN wget https://dl.k8s.io/v${KUBE_VERSION}/kubernetes-node-linux-amd64.tar.gz
 
 FROM core AS base
@@ -79,14 +79,15 @@ RUN mkdir /mnt/ceph /mnt/slow1 /mnt/slow2 /mnt/fast /mnt/local /mnt/local/crio /
 
 # CRI-O
 
-COPY --from=downloads crio-v${CRIO_VERSION}.tar.gz .
-RUN tar -xpf crio-v${CRIO_VERSION}.tar.gz && \
-  ( cd crio-v${CRIO_VERSION} && \
-    make install ) && \
-  rm -rf crio-v${CRIO_VERSION}/ crio-v${CRIO_VERSION}.tar.gz
+COPY --from=downloads cri-o.amd64.v${CRIO_VERSION}.tar.gz .
+RUN tar -xpf cri-o.amd64.v${CRIO_VERSION}.tar.gz && \
+  ( cd cri-o && \
+    bash ./install ) && \
+  rm -rf cri-o/ cri-o.amd64.v${CRIO_VERSION}.tar.gz
 COPY worker/99-cri.conf /etc/sysctl.d/99-cri.conf
 COPY worker/crio.conf /etc/crio/crio.conf
 COPY worker/storage.conf /etc/containers/storage.conf
+COPY worker/registries.conf /etc/containers/registries.conf
 RUN rm -f /usr/local/lib/systemd/system/crio.service
 COPY worker/crio.service /usr/lib/systemd/system/crio.service
 RUN systemctl enable crio

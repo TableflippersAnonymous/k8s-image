@@ -26,6 +26,7 @@ spec:
     - --initial-cluster-token=etcd-k8s
     - --initial-cluster=k8s-01=http://10.199.14.1:2380,k8s-02=http://10.199.14.2:2380,k8s-03=http://10.199.14.3:2380
     - --initial-cluster-state=new
+    - --data-dir=/bitnami/etcd/data/
     env:
     - name: ALLOW_NONE_AUTHENTICATION
       value: "yes"
