@@ -1,12 +1,11 @@
-FROM ubuntu:20.04 AS opts
+FROM ubuntu:22.04 AS opts
 
-ENV KUBE_VERSION 1.21.3
-# CRIO 1.21.2
-ENV CRIO_VERSION b27d974e13c3f9e2baa2d848ca554c80434ea88c
-ENV COREDNS_VERSION 1.8.4
-ENV ETCD_VERSION 3.5.0
-ENV KERNEL_VERSION 5.11.0-25-generic
-ENV IMAGE_VERSION 1.4.1
+ENV KUBE_VERSION 1.26.2
+ENV CRIO_VERSION v1.26.2
+ENV COREDNS_VERSION 1.9.3
+ENV ETCD_VERSION 3.5.7
+ENV KERNEL_VERSION 5.19.0-46-generic
+ENV IMAGE_VERSION 1.5.1
 ENV DEBIAN_FRONTEND noninteractive
 ENV TZ UTC
 
@@ -23,7 +22,7 @@ FROM core AS downloads
 
 RUN apt-get install -y wget
 RUN wget https://github.com/coredns/coredns/releases/download/v${COREDNS_VERSION}/coredns_${COREDNS_VERSION}_linux_amd64.tgz
-RUN wget https://storage.googleapis.com/k8s-conform-cri-o/artifacts/cri-o.amd64.${CRIO_VERSION}.tar.gz
+RUN wget https://storage.googleapis.com/cri-o/artifacts/cri-o.amd64.${CRIO_VERSION}.tar.gz
 RUN wget https://dl.k8s.io/v${KUBE_VERSION}/kubernetes-node-linux-amd64.tar.gz
 
 FROM core AS base

@@ -7,7 +7,7 @@ spec:
   hostNetwork: true
   containers:
   - name: kube-apiserver
-    image: k8s.gcr.io/kube-apiserver:v$KUBE_VERSION
+    image: registry.k8s.io/kube-apiserver:v$KUBE_VERSION
     ports:
     - name: https
       containerPort: 6443

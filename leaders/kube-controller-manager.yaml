@@ -7,7 +7,7 @@ spec:
   hostNetwork: true
   containers:
   - name: kube-controller-manager
-    image: k8s.gcr.io/kube-controller-manager:v$KUBE_VERSION
+    image: registry.k8s.io/kube-controller-manager:v$KUBE_VERSION
     ports:
     - name: https
       containerPort: 10257
