@@ -1,4 +1,4 @@
-.PHONY: output build clean upload uploadpxe
+.PHONY: output build clean upload uploadprep uploadimages uploadpxe
 all: clean build output upload
 clean:
 	rm -rf output upload
@@ -7,11 +7,11 @@ build: clean
 output: build
 	mkdir -p output
 	docker run --rm -v $(CURDIR)/output:/volume tblflp-pxe
-upload: output
+uploadprep: output
 	mkdir upload && cd upload && mkdir images tftp tftp/pxe && cp ../output/*.squashfs images/ && cd tftp/pxe && tar -xpf ../../../output/tftp-*.tgz
-	cd upload && scp -r * cobi@nas-dc-1.as53546.tblflp.zone:/volume1/
-	rm -rf upload
-uploadpxe: output
-	mkdir upload && cd upload && mkdir images tftp tftp/pxe && cp ../output/*.squashfs images/ && cd tftp/pxe && tar -xpf ../../../output/tftp-*.tgz
-	cd upload && scp -r tftp/pxe/* cobi@nas-dc-1.as53546.tblflp.zone:/volume1/tftp/pxe/
+uploadimages: uploadprep
+	cd upload && rsync -hPi8v --stats images/* naomi@nas-dc-1.as53546.tblflp.zone:/volume1/images/
+uploadpxe: uploadprep
+	cd upload && rsync -hPi8v --stats tftp/pxe/* naomi@nas-dc-1.as53546.tblflp.zone:/volume1/tftp/pxe/
+upload: uploadimages uploadpxe
 	rm -rf upload

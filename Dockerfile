@@ -1,11 +1,11 @@
-FROM ubuntu:22.04 AS opts
+FROM ubuntu:24.04 AS opts
 
-ENV KUBE_VERSION 1.26.2
-ENV CRIO_VERSION v1.26.2
-ENV COREDNS_VERSION 1.9.3
-ENV ETCD_VERSION 3.5.7
-ENV KERNEL_VERSION 5.19.0-46-generic
-ENV IMAGE_VERSION 1.5.1
+ENV KUBE_VERSION 1.29.2
+ENV CRIO_VERSION v1.29.2
+ENV COREDNS_VERSION 1.12.1
+ENV ETCD_VERSION 3.5.12
+ENV KERNEL_VERSION 6.11.0-26-generic
+ENV IMAGE_VERSION 1.8.0
 ENV DEBIAN_FRONTEND noninteractive
 ENV TZ UTC
 
@@ -36,17 +36,6 @@ RUN tar -xpf coredns_${COREDNS_VERSION}_linux_amd64.tgz && \
   chmod +x /usr/bin/coredns && \
   rm -rf coredns_${COREDNS_VERSION}_linux_amd64.tgz
 
-RUN echo "deb http://pkg.scaleft.com/deb linux main" | tee -a /etc/apt/sources.list
-RUN curl -C - https://dist.scaleft.com/pki/scaleft_deb_key.asc | apt-key add -
-
-RUN apt-get update
-
-COPY secrets/enrollment.token /var/lib/sftd/enrollment.token
-RUN mkdir -p /etc/sftd && touch /etc/sftd/disable-autostart
-RUN apt-get install -y scaleft-server-tools
-RUN sed -i -r 's/^(After=.*)$/\1 initialize-hostname.service/' /etc/systemd/system/sftd.service
-RUN rm -f /etc/sftd/disable-autostart
-
 COPY os/initramfs.conf /etc/initramfs-tools/initramfs.conf
 COPY os/fstab /etc/fstab
 COPY os/hosts /etc/hosts
@@ -70,8 +59,7 @@ COPY secrets/shadow /etc/shadow
 RUN mkdir -p /var/log/ntpstats && chown 101:101 /var/log/ntpstats
 
 RUN update-initramfs -u
-RUN systemctl enable ntpd ntpdate coredns initialize-disks initialize-hostname ssh dm-event
-RUN systemctl disable ntp
+RUN systemctl enable ntpsec ntpdate coredns initialize-disks initialize-hostname ssh dm-event
 
 FROM base AS node
 
