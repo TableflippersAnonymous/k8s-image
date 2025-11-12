@@ -9,7 +9,7 @@ spec:
   hostNetwork: true
   containers:
   - name: etcd
-    image: bitnami/etcd:$ETCD_VERSION
+    image: bitnamilegacy/etcd:$ETCD_VERSION
     ports:
     - name: etcd-client
       containerPort: 2379

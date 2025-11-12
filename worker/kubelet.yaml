@@ -30,7 +30,6 @@ evictionHard:
   imagefs.available: "15%"
 enableControllerAttachDetach: true
 featureGates:
-  EphemeralContainers: true
   RotateKubeletServerCertificate: true
 volumePluginDir: /usr/libexec/kubernetes/kubelet-plugins/volume/exec/
 

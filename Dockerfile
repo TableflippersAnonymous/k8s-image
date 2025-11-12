@@ -5,7 +5,7 @@ ENV CRIO_VERSION v1.29.2
 ENV COREDNS_VERSION 1.12.1
 ENV ETCD_VERSION 3.5.12
 ENV KERNEL_VERSION 6.11.0-26-generic
-ENV IMAGE_VERSION 1.8.0
+ENV IMAGE_VERSION 1.8.4
 ENV DEBIAN_FRONTEND noninteractive
 ENV TZ UTC
 
@@ -127,36 +127,45 @@ RUN /tmp/create_static_pods.sh
 FROM core AS ipxe
 
 RUN apt-get install -y git gcc binutils make perl mtools liblzma-dev mkisofs syslinux
-RUN git clone git://git.ipxe.org/ipxe.git
+RUN git clone https://github.com/ipxe/ipxe
 COPY pxe/boot.ipxe ipxe/src/boot.ipxe
 RUN sed -ri "s/IMAGE_VERSION/${KUBE_VERSION}-${IMAGE_VERSION}/g" ipxe/src/boot.ipxe
 RUN cd ipxe/src && make -j16 bin/undionly.kpxe EMBED=boot.ipxe
 
-FROM core AS builder
+FROM core AS builder-core
 
 RUN apt-get install -y squashfs-tools
 
 RUN mkdir /tftp /roots /images
 
+FROM builder-core AS builder-node
 COPY --from=node / /roots/node
-COPY --from=k8s-01 / /roots/k8s-01
-COPY --from=k8s-02 / /roots/k8s-02
-COPY --from=k8s-03 / /roots/k8s-03
-
+RUN mksquashfs /roots/node /images/node-${KUBE_VERSION}-${IMAGE_VERSION}.squashfs -comp lzo
 RUN cp /roots/node/boot/initrd.img-${KERNEL_VERSION} /tftp/initrd.img-${KUBE_VERSION}-${IMAGE_VERSION}
 RUN cp /roots/node/boot/vmlinuz-${KERNEL_VERSION} /tftp/vmlinuz-${KUBE_VERSION}-${IMAGE_VERSION}
 RUN cp /roots/node/boot/config-${KERNEL_VERSION} /tftp/config-${KUBE_VERSION}-${IMAGE_VERSION}
 RUN cp /roots/node/boot/System.map-${KERNEL_VERSION} /tftp/System.map-${KUBE_VERSION}-${IMAGE_VERSION}
-RUN rm -rf /roots/*/boot
-
-RUN mksquashfs /roots/node /images/node-${KUBE_VERSION}-${IMAGE_VERSION}.squashfs -comp lzo
-RUN mksquashfs /roots/k8s-01 /images/k8s-01-${KUBE_VERSION}-${IMAGE_VERSION}.squashfs -comp lzo
-RUN mksquashfs /roots/k8s-02 /images/k8s-02-${KUBE_VERSION}-${IMAGE_VERSION}.squashfs -comp lzo
-RUN mksquashfs /roots/k8s-03 /images/k8s-03-${KUBE_VERSION}-${IMAGE_VERSION}.squashfs -comp lzo
-
 COPY --from=ipxe ipxe/src/bin/undionly.kpxe /tftp/boot-${KUBE_VERSION}-${IMAGE_VERSION}.kpxe
 RUN tar -zcpf /images/tftp-${KUBE_VERSION}-${IMAGE_VERSION}.tgz -C /tftp .
 
-RUN rm -rf /roots /tftp
+FROM builder-core AS builder-k8s-01
+COPY --from=k8s-01 / /roots/k8s-01
+RUN mksquashfs /roots/k8s-01 /images/k8s-01-${KUBE_VERSION}-${IMAGE_VERSION}.squashfs -comp lzo
+
+FROM builder-core AS builder-k8s-02
+COPY --from=k8s-02 / /roots/k8s-02
+RUN mksquashfs /roots/k8s-02 /images/k8s-02-${KUBE_VERSION}-${IMAGE_VERSION}.squashfs -comp lzo
+
+FROM builder-core AS builder-k8s-03
+COPY --from=k8s-03 / /roots/k8s-03
+RUN mksquashfs /roots/k8s-03 /images/k8s-03-${KUBE_VERSION}-${IMAGE_VERSION}.squashfs -comp lzo
+
+
+FROM opts AS built
+
+COPY --from=builder-node /images /images
+COPY --from=builder-k8s-01 /images/k8s-01-* /images/
+COPY --from=builder-k8s-02 /images/k8s-02-* /images/
+COPY --from=builder-k8s-03 /images/k8s-03-* /images/
 
 CMD cp -v /images/* /volume/
