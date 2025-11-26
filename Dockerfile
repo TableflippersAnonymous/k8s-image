@@ -1,11 +1,11 @@
 FROM ubuntu:24.04 AS opts
 
-ENV KUBE_VERSION 1.29.2
-ENV CRIO_VERSION v1.29.2
-ENV COREDNS_VERSION 1.12.1
+ENV KUBE_VERSION 1.34.2
+ENV CRIO_VERSION v1.34.2
+ENV COREDNS_VERSION 1.13.1
 ENV ETCD_VERSION 3.5.12
 ENV KERNEL_VERSION 6.11.0-26-generic
-ENV IMAGE_VERSION 1.8.5
+ENV IMAGE_VERSION 1.9.3
 ENV DEBIAN_FRONTEND noninteractive
 ENV TZ UTC
 
@@ -76,7 +76,7 @@ COPY worker/99-cri.conf /etc/sysctl.d/99-cri.conf
 COPY worker/crio.conf /etc/crio/crio.conf
 COPY worker/storage.conf /etc/containers/storage.conf
 COPY worker/registries.conf /etc/containers/registries.conf
-RUN rm -f /usr/local/lib/systemd/system/crio.service
+RUN rm -f /usr/local/lib/systemd/system/crio.service /etc/cni/net.d/11-crio-ipv4-bridge.conflist
 COPY worker/crio.service /usr/lib/systemd/system/crio.service
 RUN systemctl enable crio
 

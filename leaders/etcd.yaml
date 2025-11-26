@@ -20,7 +20,7 @@ spec:
     command:
     - etcd
     args:
-    - --name=k8s-01
+    - --name=$NODE_NAME
     - --initial-advertise-peer-urls=http://$PRIVATE_IP:2380
     - --listen-peer-urls=http://$PRIVATE_IP:2380
     - --initial-cluster-token=etcd-k8s

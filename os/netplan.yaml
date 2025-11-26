@@ -6,6 +6,7 @@ network:
       dhcp4: true
     eth1:
       dhcp4: true
+      optional: true
     eth2:
       dhcp4: true
     eth3:

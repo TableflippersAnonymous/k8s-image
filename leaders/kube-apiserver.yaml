@@ -24,8 +24,6 @@ spec:
     - --etcd-servers=http://k8s-01-private.as53546.tblflp.zone:2379,http://k8s-02-private.as53546.tblflp.zone:2379,http://k8s-03-private.as53546.tblflp.zone:2379
     - --feature-gates=HPAScaleToZero=true
     - --goaway-chance=0.001
-    - --oidc-client-id=mck2x2FiFLUK7SlH4Py5
-    - --oidc-issuer-url=https://tblflp.okta.com/oauth2/aus27b41mv215L25t1t7
     - --service-cluster-ip-range=10.195.0.0/16
     - --storage-backend=etcd3
     - --token-auth-file=/etc/kubernetes/tokens
