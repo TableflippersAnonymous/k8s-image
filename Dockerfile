@@ -5,7 +5,7 @@ ENV CRIO_VERSION v1.34.2
 ENV COREDNS_VERSION 1.13.1
 ENV ETCD_VERSION 3.5.12
 ENV KERNEL_VERSION 6.11.0-26-generic
-ENV IMAGE_VERSION 1.9.4
+ENV IMAGE_VERSION 1.9.5
 ENV DEBIAN_FRONTEND noninteractive
 ENV TZ UTC
 
@@ -54,6 +54,7 @@ COPY os/sshd_config /etc/ssh/sshd_config
 COPY os/authorized_keys /root/.ssh/authorized_keys
 COPY os/ntpd.service /usr/lib/systemd/system
 COPY os/ntpdate.service /usr/lib/systemd/system
+COPY os/nic-rings.link /etc/systemd/network/10-nic-rings.link
 RUN chmod 400 /root/.ssh/authorized_keys && chown root /root/.ssh/authorized_keys
 COPY secrets/shadow /etc/shadow
 RUN mkdir -p /var/log/ntpstats && chown 101:101 /var/log/ntpstats
