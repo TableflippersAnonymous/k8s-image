@@ -1,5 +1,6 @@
 enable crio.service
 enable coredns.service
+enable unbound.service
 enable initialize-disks.service
 enable initialize-hostname.service
 enable kubelet.service

@@ -5,7 +5,7 @@ ENV CRIO_VERSION v1.34.2
 ENV COREDNS_VERSION 1.13.1
 ENV ETCD_VERSION 3.5.12
 ENV KERNEL_VERSION 6.11.0-26-generic
-ENV IMAGE_VERSION 1.9.5
+ENV IMAGE_VERSION 1.9.8
 ENV DEBIAN_FRONTEND noninteractive
 ENV TZ UTC
 
@@ -28,7 +28,7 @@ RUN wget https://dl.k8s.io/v${KUBE_VERSION}/kubernetes-node-linux-amd64.tar.gz
 FROM core AS base
 
 RUN apt-mark hold grub-pc
-RUN apt-get install -y linux-image-${KERNEL_VERSION} linux-headers-${KERNEL_VERSION} live-boot systemd wget netplan.io ntp gnupg2 make squashfs-tools openssh-server iputils-ping htop vim pciutils lshw less iptables ntpdate ipmitool lvm2 curl
+RUN apt-get install -y linux-image-${KERNEL_VERSION} linux-headers-${KERNEL_VERSION} live-boot systemd wget netplan.io ntp gnupg2 make squashfs-tools openssh-server iputils-ping htop vim pciutils lshw less iptables ntpdate ipmitool lvm2 curl unbound
 
 COPY --from=downloads coredns_${COREDNS_VERSION}_linux_amd64.tgz .
 RUN tar -xpf coredns_${COREDNS_VERSION}_linux_amd64.tgz && \
@@ -42,6 +42,7 @@ COPY os/hosts /etc/hosts
 COPY os/ntp.conf /etc/ntp.conf
 COPY os/coredns.conf /etc/coredns.conf
 COPY os/coredns.service /usr/lib/systemd/system/
+COPY os/unbound.conf /etc/unbound/unbound.conf
 COPY os/resolv.conf /etc/resolv.conf
 COPY os/netplan.yaml /etc/netplan/config.yaml
 COPY os/initialize-disks.sh /usr/local/sbin/initialize-disks.sh
@@ -60,7 +61,7 @@ COPY secrets/shadow /etc/shadow
 RUN mkdir -p /var/log/ntpstats && chown 101:101 /var/log/ntpstats
 
 RUN update-initramfs -u
-RUN systemctl enable ntpsec ntpdate coredns initialize-disks initialize-hostname ssh dm-event
+RUN systemctl enable ntpsec ntpdate coredns initialize-disks initialize-hostname ssh dm-event unbound
 
 FROM base AS node
 

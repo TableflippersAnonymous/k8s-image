@@ -9,7 +9,9 @@ host=$(printf "k8s-%02d" $nodenum)
 
 node=$(printf "k8s-%02d.as53546.tblflp.zone" $nodenum)
 
-hostnamectl set-hostname $node
+echo "$node" > /etc/hostname
+hostname "$node"
+
 cat <<EOF >/etc/nodeinfo.env
 HOST=${host}
 FQDN=${node}
