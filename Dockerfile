@@ -5,7 +5,7 @@ ENV CRIO_VERSION v1.34.2
 ENV COREDNS_VERSION 1.13.1
 ENV ETCD_VERSION 3.5.12
 ENV KERNEL_VERSION 6.11.0-26-generic
-ENV IMAGE_VERSION 1.9.8
+ENV IMAGE_VERSION 1.9.9
 ENV DEBIAN_FRONTEND noninteractive
 ENV TZ UTC
 
@@ -40,6 +40,7 @@ COPY os/initramfs.conf /etc/initramfs-tools/initramfs.conf
 COPY os/fstab /etc/fstab
 COPY os/hosts /etc/hosts
 COPY os/ntp.conf /etc/ntp.conf
+COPY os/ntp.conf /etc/ntpsec/ntp.conf
 COPY os/coredns.conf /etc/coredns.conf
 COPY os/coredns.service /usr/lib/systemd/system/
 COPY os/unbound.conf /etc/unbound/unbound.conf
