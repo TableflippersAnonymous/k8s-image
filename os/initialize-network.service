@@ -1,0 +1,19 @@
+[Unit]
+Description=Initialize Network
+DefaultDependencies=no
+After=systemd-remount-fs.service systemd-udevd.service initialize-hostname.service
+Requires=initialize-hostname.service
+Wants=network-pre.target
+Before=sysinit.target network-pre.target systemd-networkd.service shutdown.target
+Conflicts=shutdown.target
+ConditionPathExists=!/run/initialize-network.done
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/initialize-network.sh
+ExecStartPost=/bin/touch /run/initialize-network.done
+RemainAfterExit=yes
+TimeoutStartSec=90
+
+[Install]
+WantedBy=sysinit.target

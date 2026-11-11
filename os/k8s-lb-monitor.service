@@ -1,0 +1,14 @@
+[Unit]
+Description=kube-apiserver VIP health monitor
+Documentation=http://tblflp.zone
+Requires=k8s-lb.service
+After=k8s-lb.service
+
+[Service]
+ExecStart=/usr/local/sbin/k8s-lb.sh monitor
+Restart=always
+StartLimitInterval=0
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

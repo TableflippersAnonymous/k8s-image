@@ -1,0 +1,22 @@
+# The node's only data path: eth4+eth5 (10GbE), one leg to each of
+# sw-dc-xe-1 and sw-dc-xe-2, which form a vPC so the bond aggregates.
+#
+#   eth4 -> sw-dc-xe-1 e1/N
+#   eth5 -> sw-dc-xe-2 e1/N
+#
+# The bond itself carries private (vlan 14) untagged -- it is the trunk's
+# native VLAN, which is what lets the NIC's PXE ROM boot over the same
+# ports.  public and cluster ride it as tagged VLAN interfaces.
+#
+# The switch ports carry 'no lacp suspend-individual', so during PXE --
+# before this bond exists and LACP is spoken -- each leg still forwards.
+[NetDev]
+Name=private
+Kind=bond
+
+[Bond]
+Mode=802.3ad
+TransmitHashPolicy=layer3+4
+LACPTransmitRate=fast
+MIIMonitorSec=100ms
+MinLinks=1

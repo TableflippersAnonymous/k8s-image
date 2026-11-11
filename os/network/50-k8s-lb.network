@@ -1,0 +1,10 @@
+[Match]
+Name=k8s-lb
+
+[Network]
+Address=10.199.15.200/32
+LinkLocalAddressing=no
+IPv6AcceptRA=no
+
+[Link]
+RequiredForOnline=no

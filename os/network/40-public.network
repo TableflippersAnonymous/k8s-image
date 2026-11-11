@@ -1,0 +1,18 @@
+[Match]
+Name=public
+
+[Network]
+IPv6AcceptRA=no
+
+[Link]
+RequiredForOnline=routable
+
+# Addresses arrive as a 40-public.network.d/10-address.conf drop-in written
+# at boot by initialize-network.sh.  This is the default-route network;
+# 144.86.176.30 is the sw-dc-xe HSRP VIP on the /27.
+
+[Route]
+Gateway=144.86.176.30
+
+[Route]
+Gateway=2602:f3ad::fffe

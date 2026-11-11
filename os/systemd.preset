@@ -3,6 +3,11 @@ enable coredns.service
 enable unbound.service
 enable initialize-disks.service
 enable initialize-hostname.service
+enable initialize-network.service
+enable systemd-networkd.service
+enable k8s-lb.service
+enable k8s-lb-monitor.service
+enable vlan-qos.service
 enable kubelet.service
 enable ntp.service
 enable ssh.service

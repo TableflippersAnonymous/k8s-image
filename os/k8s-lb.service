@@ -1,0 +1,14 @@
+[Unit]
+Description=kube-apiserver VIP director (IPVS)
+Documentation=http://tblflp.zone
+Wants=network-online.target
+After=network-online.target initialize-network.service
+Before=kubelet.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/k8s-lb.sh setup
+
+[Install]
+WantedBy=multi-user.target

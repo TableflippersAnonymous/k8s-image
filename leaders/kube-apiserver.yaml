@@ -18,7 +18,7 @@ spec:
     - --allow-privileged=true
     - --apiserver-count=3
     - --authorization-mode=Node,RBAC
-    - --bind-address=$LB_IP
+    - --bind-address=$PRIVATE_IP
     - --enable-bootstrap-token-auth
     - --enable-admission-plugins=NodeRestriction
     - --etcd-servers=http://k8s-01-private.as53546.tblflp.zone:2379,http://k8s-02-private.as53546.tblflp.zone:2379,http://k8s-03-private.as53546.tblflp.zone:2379

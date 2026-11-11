@@ -1,0 +1,6 @@
+# Carries 10.199.15.200, the k8s-masters VIP.  10.199.15.200/32 is routed to
+# the nodes; holding it locally is what lets IPVS intercept it on every node
+# rather than hairpinning through the router.
+[NetDev]
+Name=k8s-lb
+Kind=dummy

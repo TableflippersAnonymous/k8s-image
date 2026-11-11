@@ -1,0 +1,7 @@
+# cluster: vlan 17, tagged on the private bond.  CoS 0, default queue.
+[NetDev]
+Name=cluster
+Kind=vlan
+
+[VLAN]
+Id=17

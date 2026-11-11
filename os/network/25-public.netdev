@@ -1,0 +1,11 @@
+# public: vlan 12, tagged on the private bond.
+#
+# Marked CoS 1 on egress so the switches can hold it a 1G minimum queue.
+# networkd's EgressQOSMaps= cannot express it (it rejects priority 0,
+# which is all unmarked traffic), so vlan-qos.service sets the map.
+[NetDev]
+Name=public
+Kind=vlan
+
+[VLAN]
+Id=12

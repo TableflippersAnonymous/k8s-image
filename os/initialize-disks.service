@@ -1,8 +1,15 @@
 [Unit]
 Description=Initialize Disks
 Documentation=http://tblflp.zone
+# Runs before local filesystems are mounted (it creates LABEL=local), so it
+# must not take the default dependencies: those order it after sysinit.target,
+# which is itself after local-fs.target -- an ordering cycle that systemd
+# resolves by deleting jobs such as local-fs.target.
+DefaultDependencies=no
 After=dev-sda.device dev-sdb.device dev-sdc.device dev-sdd.device
 Requires=dev-sda.device dev-sdb.device dev-sdc.device dev-sdd.device
+Before=local-fs-pre.target shutdown.target
+Conflicts=shutdown.target
 
 [Service]
 Type=oneshot

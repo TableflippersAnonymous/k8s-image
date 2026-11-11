@@ -1,11 +1,11 @@
-FROM ubuntu:24.04 AS opts
+FROM ubuntu:26.04 AS opts
 
 ENV KUBE_VERSION 1.34.2
 ENV CRIO_VERSION v1.34.2
 ENV COREDNS_VERSION 1.13.1
 ENV ETCD_VERSION 3.5.12
-ENV KERNEL_VERSION 6.11.0-26-generic
-ENV IMAGE_VERSION 1.9.9
+ENV KERNEL_VERSION 7.0.0-43-generic
+ENV IMAGE_VERSION 2.0.0
 ENV DEBIAN_FRONTEND noninteractive
 ENV TZ UTC
 
@@ -16,7 +16,7 @@ FROM opts AS core
 RUN rm -f /run/systemd/container
 
 RUN apt-get update && apt-get upgrade -y
-RUN yes | unminimize
+RUN apt-get install -y unminimize && yes | unminimize
 
 FROM core AS downloads
 
@@ -28,7 +28,7 @@ RUN wget https://dl.k8s.io/v${KUBE_VERSION}/kubernetes-node-linux-amd64.tar.gz
 FROM core AS base
 
 RUN apt-mark hold grub-pc
-RUN apt-get install -y linux-image-${KERNEL_VERSION} linux-headers-${KERNEL_VERSION} live-boot systemd wget netplan.io ntp gnupg2 make squashfs-tools openssh-server iputils-ping htop vim pciutils lshw less iptables ntpdate ipmitool lvm2 curl unbound
+RUN apt-get install -y linux-image-${KERNEL_VERSION} linux-headers-${KERNEL_VERSION} live-boot systemd wget ntpsec gnupg2 make squashfs-tools openssh-server iputils-ping htop vim pciutils lshw less iptables ntpsec-ntpdate ipmitool lvm2 curl unbound ipvsadm iproute2
 
 COPY --from=downloads coredns_${COREDNS_VERSION}_linux_amd64.tgz .
 RUN tar -xpf coredns_${COREDNS_VERSION}_linux_amd64.tgz && \
@@ -45,24 +45,31 @@ COPY os/coredns.conf /etc/coredns.conf
 COPY os/coredns.service /usr/lib/systemd/system/
 COPY os/unbound.conf /etc/unbound/unbound.conf
 COPY os/resolv.conf /etc/resolv.conf
-COPY os/netplan.yaml /etc/netplan/config.yaml
+RUN rm -rf /etc/netplan
+COPY os/nodes.conf /etc/nodes.conf
+COPY os/network/ /etc/systemd/network/
 COPY os/initialize-disks.sh /usr/local/sbin/initialize-disks.sh
 COPY os/initialize-hostname.sh /usr/local/sbin/initialize-hostname.sh
-RUN chmod +x /usr/local/sbin/initialize-disks.sh /usr/local/sbin/initialize-hostname.sh
+COPY os/initialize-network.sh /usr/local/sbin/initialize-network.sh
+COPY os/k8s-lb.sh /usr/local/sbin/k8s-lb.sh
+RUN chmod +x /usr/local/sbin/initialize-disks.sh /usr/local/sbin/initialize-hostname.sh /usr/local/sbin/initialize-network.sh /usr/local/sbin/k8s-lb.sh
 COPY os/initialize-disks.service /usr/lib/systemd/system
 COPY os/initialize-hostname.service /usr/lib/systemd/system
+COPY os/initialize-network.service /usr/lib/systemd/system
+COPY os/k8s-lb.service /usr/lib/systemd/system
+COPY os/k8s-lb-monitor.service /usr/lib/systemd/system
+COPY os/vlan-qos.service /usr/lib/systemd/system
 COPY os/systemd.preset /usr/lib/systemd/system-preset/00-tblflp.preset
 COPY os/sshd_config /etc/ssh/sshd_config
 COPY os/authorized_keys /root/.ssh/authorized_keys
 COPY os/ntpd.service /usr/lib/systemd/system
 COPY os/ntpdate.service /usr/lib/systemd/system
-COPY os/nic-rings.link /etc/systemd/network/10-nic-rings.link
 RUN chmod 400 /root/.ssh/authorized_keys && chown root /root/.ssh/authorized_keys
 COPY secrets/shadow /etc/shadow
-RUN mkdir -p /var/log/ntpstats && chown 101:101 /var/log/ntpstats
+RUN mkdir -p /var/log/ntpstats && chown ntpsec:ntpsec /var/log/ntpstats
 
 RUN update-initramfs -u
-RUN systemctl enable ntpsec ntpdate coredns initialize-disks initialize-hostname ssh dm-event unbound
+RUN systemctl enable ntpsec ntpdate coredns initialize-disks initialize-hostname initialize-network systemd-networkd k8s-lb k8s-lb-monitor vlan-qos ssh dm-event unbound
 
 FROM base AS node
 
@@ -110,21 +117,18 @@ FROM leader AS k8s-01
 
 ENV NODE_NAME k8s-01
 ENV PRIVATE_IP 10.199.14.1
-ENV LB_IP 10.199.15.1
 RUN /tmp/create_static_pods.sh
 
 FROM leader AS k8s-02
 
 ENV NODE_NAME k8s-02
 ENV PRIVATE_IP 10.199.14.2
-ENV LB_IP 10.199.15.2
 RUN /tmp/create_static_pods.sh
 
 FROM leader AS k8s-03
 
 ENV NODE_NAME k8s-03
 ENV PRIVATE_IP 10.199.14.3
-ENV LB_IP 10.199.15.3
 RUN /tmp/create_static_pods.sh
 
 FROM core AS ipxe

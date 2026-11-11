@@ -1,0 +1,18 @@
+[Match]
+Name=private
+
+[Network]
+LinkLocalAddressing=no
+IPv6AcceptRA=no
+VLAN=public
+VLAN=cluster
+
+[Link]
+RequiredForOnline=routable
+
+# Addresses arrive as a 40-private.network.d/10-address.conf drop-in written
+# at boot by initialize-network.sh.  10.199.14.254 is the sw-dc-xe HSRP VIP.
+
+[Route]
+Destination=10.192.0.0/12
+Gateway=10.199.14.254

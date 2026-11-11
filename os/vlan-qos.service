@@ -1,0 +1,16 @@
+[Unit]
+Description=Mark public VLAN egress as CoS 1
+Documentation=http://tblflp.zone
+# networkd creates the VLAN; this only stamps the egress-qos-map onto it.
+# EgressQOSMaps= in the .netdev cannot do this: it rejects priority 0,
+# which is every packet that has not set SO_PRIORITY.
+BindsTo=sys-subsystem-net-devices-public.device
+After=sys-subsystem-net-devices-public.device systemd-networkd.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=ip link set dev public type vlan egress-qos-map 0:1
+
+[Install]
+WantedBy=sys-subsystem-net-devices-public.device

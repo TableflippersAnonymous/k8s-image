@@ -1,0 +1,9 @@
+[Match]
+Name=eth4 eth5
+
+[Network]
+Bond=private
+LinkLocalAddressing=no
+
+[Link]
+RequiredForOnline=enslaved
