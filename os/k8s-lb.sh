@@ -19,11 +19,39 @@
 set -u
 
 VIP=10.199.15.200
+# Clients reach the VIP on 443 -- the kubeconfigs say https://k8s-masters
+# with no port -- and some on 6443.  Both map onto the apiservers' 6443;
+# IPVS masquerade translates the port.
+VIP_PORTS="443 6443"
 PORT=6443
 MASTERS="10.199.14.1 10.199.14.2 10.199.14.3"
 INTERVAL=5
 
 log() { echo "k8s-lb: $*"; }
+
+# Create any virtual service or destination that is missing.  Run at setup
+# and on every monitor pass: kube-proxy in IPVS mode deletes virtual
+# services it does not own unless they are in its ipvs.excludeCIDRs, and
+# without this the VIP would vanish silently until the next reboot.
+#
+# Never "ipvsadm -C": that would flush kube-proxy's services too.
+ensure_services() {
+  local vport master created=0
+  for vport in ${VIP_PORTS}; do
+    if ! ipvsadm -Ln -t "${VIP}:${vport}" >/dev/null 2>&1; then
+      ipvsadm -A -t "${VIP}:${vport}" -s rr && created=1
+      [[ "${#state[@]}" -gt 0 ]] && \
+        log "${VIP}:${vport} was missing and has been recreated -- exclude ${VIP} in the cluster service proxy (kube-router --excluded-cidrs / kube-proxy --ipvs-exclude-cidrs)"
+    fi
+    for master in ${MASTERS}; do
+      # New destinations start parked; reconcile decides their weight.
+      ipvsadm -a -t "${VIP}:${vport}" -r "${master}:${PORT}" -m -w 0 2>/dev/null && created=1
+    done
+  done
+  # Forget cached weights so reconcile re-applies them to what was created.
+  (( created )) && state=()
+  return 0
+}
 
 setup() {
   modprobe ip_vs
@@ -36,14 +64,9 @@ setup() {
   # letting them hang until the client gives up.
   sysctl -qw net.ipv4.vs.expire_nodest_conn=1
 
-  # Never "ipvsadm -C" here: that would also flush anything kube-proxy has
-  # programmed.  Add-or-edit keeps this restartable.
-  ipvsadm -A -t "${VIP}:${PORT}" -s rr 2>/dev/null || \
-    ipvsadm -E -t "${VIP}:${PORT}" -s rr
+  ensure_services
 
-  local master
   for master in ${MASTERS}; do
-    ipvsadm -a -t "${VIP}:${PORT}" -r "${master}:${PORT}" -m -w 1 2>/dev/null || true
     iptables -t nat -C POSTROUTING -o private -p tcp -d "${master}" \
       --dport "${PORT}" -j MASQUERADE 2>/dev/null || \
     iptables -t nat -A POSTROUTING -o private -p tcp -d "${master}" \
@@ -54,10 +77,12 @@ setup() {
 
   # modprobe is allowed to fail (the modules may be built in), so confirm the
   # table actually exists rather than reporting a working VIP that isn't.
-  ipvsadm -Ln -t "${VIP}:${PORT}" >/dev/null 2>&1 || {
-    log "failed to program IPVS for ${VIP}:${PORT}; is ip_vs available?"
-    exit 1
-  }
+  for vport in ${VIP_PORTS}; do
+    ipvsadm -Ln -t "${VIP}:${vport}" >/dev/null 2>&1 || {
+      log "failed to program IPVS for ${VIP}:${vport}; is ip_vs available?"
+      exit 1
+    }
+  done
 }
 
 # A master counts as up if it answers /readyz at all.  Any HTTP status will
@@ -71,17 +96,19 @@ healthy() {
 }
 
 reconcile() {
-  local master want up=0
+  local master vport want up=0
   for master in ${MASTERS}; do
     if healthy "$master"; then want=1; up=$((up + 1)); else want=0; fi
     if [[ "${state[$master]:-}" != "$want" ]]; then
-      ipvsadm -e -t "${VIP}:${PORT}" -r "${master}:${PORT}" -m -w "$want"
+      for vport in ${VIP_PORTS}; do
+        ipvsadm -e -t "${VIP}:${vport}" -r "${master}:${PORT}" -m -w "$want"
+      done
       log "${master} weight ${want}"
       state[$master]="$want"
     fi
   done
   if [[ "$up" -eq 0 && "${state[_up]:-}" != "0" ]]; then
-    log "no apiserver is answering; ${VIP}:${PORT} is a black hole"
+    log "no apiserver is answering; ${VIP} is a black hole"
   fi
   state[_up]="$up"
 }
@@ -95,6 +122,7 @@ case "${1:-monitor}" in
   monitor)
     while true; do
       sleep "${INTERVAL}"
+      ensure_services
       reconcile
     done
     ;;
