@@ -12,12 +12,18 @@ dhcp || goto retry
 # Which squashfs to boot is a property of the machine, not of whatever address
 # it happened to be handed.  ${uuid} is the SMBIOS UUID, the same value the
 # booted system reads back from /sys/class/dmi/id/product_uuid.
+#
+# iPXE prints ${uuid} in LOWERCASE hex (uuid_ntoa uses %x) and iseq is
+# case-sensitive, so these must be lowercase or nothing ever matches and
+# every leader silently boots the worker image.
 
 set imgpfx node
 
-iseq ${uuid} 00000000-0000-0000-0000-002590F0EEA4 && set imgpfx k8s-01 ||
-iseq ${uuid} 00000000-0000-0000-0000-002590F2DDDA && set imgpfx k8s-02 ||
-iseq ${uuid} 00000000-0000-0000-0000-002590F262CE && set imgpfx k8s-03 ||
+iseq ${uuid} 00000000-0000-0000-0000-002590f0eea4 && set imgpfx k8s-01 ||
+iseq ${uuid} 00000000-0000-0000-0000-002590f2ddda && set imgpfx k8s-02 ||
+iseq ${uuid} 00000000-0000-0000-0000-002590f262ce && set imgpfx k8s-03 ||
+
+echo uuid ${uuid} -> image ${imgpfx}
 
 initrd tftp://${net0/next-server}/pxe/initrd.img-${imgvers}
 boot tftp://${net0/next-server}/pxe/vmlinuz-${imgvers} initrd=initrd.img-${imgvers} boot=live fetch=ftp://${net0/next-server}/${imgpfx}-${imgvers}.squashfs toram BOOTIF=${net0/mac} init=/lib/systemd/systemd net.ifnames=0
